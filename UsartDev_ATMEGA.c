@@ -135,8 +135,8 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
   if(RcvLen >= pDev->RcvCount){
     //收完数据强制完成
     pDev->Flag |= USART_DEV_RCV_ERR;
-    pDev->RcvEndInt(pDev);
-    UsartDev_RcvStop(pDev);
+    if(pDev->RcvEndInt(pDev))//收完数据强制完成(可重启动)
+      UsartDev_RcvStop(pDev);
     return;
   }
   //收到缓冲区中

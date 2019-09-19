@@ -169,7 +169,8 @@ void UsartDev_IRQ(struct _UsartDev *pDev)
     if(pDev->RcvLen >= pDev->RcvCount){
       UsartDev_RcvStop(pDev);//先结束
       pDev->Flag |= USART_DEV_RCV_BUF_OV; //缓冲区满结束
-      pDev->RcvEndInt(pDev);//中断结束处理
+      if(pDev->RcvEndInt(pDev))//收完数据强制完成(可重启动)
+        UsartDev_RcvStop(pDev);
     }
 
     #ifdef USART_DEV_SUPPORT_RCV_OV_STOP

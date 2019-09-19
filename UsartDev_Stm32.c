@@ -131,9 +131,8 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
 		RcvLen = pDev->RcvLen;
 		//缓冲区溢出检查,溢出时后面的再也不收了！
 		if(RcvLen >= pDev->RcvCount){
-			//收完数据强制完成
-			pDev->RcvEndInt(pDev);
-			UsartDev_RcvStop(pDev);
+      if(pDev->RcvEndInt(pDev))//收完数据强制完成(可重启动)
+        UsartDev_RcvStop(pDev);
 			return;
 		}
 		//收到缓冲区中
