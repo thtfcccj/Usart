@@ -5,7 +5,9 @@
 ******************************************************************************/
 #ifndef __USART_DEV_CFG_H
 #define __USART_DEV_CFG_H
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 
 /******************************************************************************
                              相关配置

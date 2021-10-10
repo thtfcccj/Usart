@@ -1,7 +1,7 @@
 /******************************************************************************
 
-                   Usart设备抽像在HC32中的实现
-//此模块支持接口提供的所有功能
+                   Usart设备抽像在ASM32中的实现
+//此模块由HC32Fork出，模块结构基本一致
 ******************************************************************************/
 
 #include "UsartDev.h"
@@ -9,9 +9,8 @@
 
 #include "CMSIS.h"
 
-
 //---------------------------内部定义-----------------------------------------
-#define USART_TypeDef  M0P_UART_TypeDef
+#define USART_TypeDef  UART_TypeDef
 
 #define USART_SCON_RE         0x10 //接收使能
 #define USART_SCON_RCIE       0x01 //使能接收完成中断
@@ -20,7 +19,6 @@
 #define USART_ISR_FE          0x04 //接收帧错误标志位
 #define USART_ISR_TI          0x02 //发送完成中断
 #define USART_ISR_RI          0x01 //接收完成中断
-
 
 //#ifdef SUPPORT_USART_TX_BUF  //支持发送缓冲时(低端不支持)
 //  #define USART_SCON_TXEIE     0x100   //带发送缓冲时定义
