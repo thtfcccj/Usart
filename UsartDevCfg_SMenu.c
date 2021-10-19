@@ -31,7 +31,7 @@ static void _SetUsartDevCfgCfg(struct _SMenuUser *pUser, unsigned char Type)
 
 //主结结构
 const struct _SMenuFun SMenu_UsartDevCfgCfg = {
-  {LED_SIGN_G,LED_SIGN_F, LED_SIGN_C, LED_SIGN_4 | LED_SIGN_DOT,}, //4.CFG
+  {LED_SIGN_G,LED_SIGN_F, LED_SIGN_C, LED_SIGN_4 | LED_SIGN_DOT,}, //5.CFG
   _GetUsartDevCfgCfg, _SetUsartDevCfgCfg,
 };
 

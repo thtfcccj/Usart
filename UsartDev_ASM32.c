@@ -138,11 +138,11 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
 	//接收完成中断
 	if((pUsartHw->SCON & USART_SCON_RCIE) && (pUsartHw->ISR & USART_ISR_RI)){
 		RcvData = pUsartHw->SBUF;//无条件接收数据
-    pUsartHw->ICR &= ~USART_ISR_RI;
+    pUsartHw->ICR |= USART_ISR_RI;
 		pDev->RcvData = RcvData;
 	   //判断帧错误
 		if(pUsartHw->ISR & USART_ISR_FE){
-      pUsartHw->ICR &= ~USART_ISR_FE;
+      pUsartHw->ICR |= USART_ISR_FE;
 			pDev->Flag |= USART_DEV_RCV_ERR;
 			return;
 		}
@@ -164,7 +164,7 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
  
 	//发送完成中断
   if((pUsartHw->SCON & USART_SCON_TCIE) && (pUsartHw->ISR & USART_ISR_TI)){
-    pUsartHw->ICR &= ~USART_ISR_TI;
+    pUsartHw->ICR |= USART_ISR_TI;
     pDev->SenLen++; //已写入缓冲区一个数了
     if(pDev->SenLen < pDev->SendCount){
       if(!(pDev->Flag & USART_DEV_SEND_AUTO)){//发送完每个数通报

@@ -149,6 +149,7 @@ void UsartDevCfg_Save(USART_DEV_CFG_CPV);
   #define UsartDevCfg_GetBuad(pcfg) \
     UsartDevCfg_Buad[((pcfg)->Cfg & USART_DEV_BUAD_MASK) >> USART_DEV_BUAD_SHIFT]
     //#define UsartDevCfg_SetBuadc(pcfg, buad) //使用UsartDevCfg_SetUserCfg()
+    
 #else
   #define UsartDevCfg_GetBuad(pcfg)  \
     (((unsigned long)((pcfg)->BuadH) << 16) + (pcfg)->BuadL)
@@ -166,9 +167,15 @@ void UsartDevCfg_Save(USART_DEV_CFG_CPV);
   (pcfg)->Cfg = (commcfg & 0x0f) | ((pcfg)->Cfg & 0xf0);}while(0)
     
 //----------------------------用户托管部分位定义-------------------------------
-#define UsartDevCfg_GetUserCfg(pcfg) ((pcfg)->Cfg & 0xf0)
-#define UsartDevCfg_SetUserCfg(pcfg,userCfg) do{\
-  (pcfg)->Cfg = (userCfg & 0xf0) | ((pcfg)->Cfg & 0x0f);}while(0)
+#ifndef SUPPORT_USART_DEV_CFG_TINY    //非精简模式时有效
+  #define UsartDevCfg_GetUserCfg(pcfg) ((pcfg)->Cfg & 0xf0)
+  #define UsartDevCfg_SetUserCfg(pcfg,userCfg) do{\
+    (pcfg)->Cfg = (userCfg & 0xf0) | ((pcfg)->Cfg & 0x0f);}while(0)
+#else //为波特率ID位
+  #define UsartDevCfg_GetBuadId(pcfg) (((pcfg)->Cfg >> 4) & 0x07)
+  #define UsartDevCfg_SetBuadId(pcfg,buadId) do{\
+    (pcfg)->Cfg = (buadId << 4) | ((pcfg)->Cfg & 0x8f);}while(0)
+#endif
     
 //----------------------------奇偶校验位------------------------------------
 //奇校验,否则为偶校验  
