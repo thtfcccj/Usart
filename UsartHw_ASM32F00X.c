@@ -30,7 +30,7 @@ static unsigned short _GetSCNT(unsigned long Bandrate,
 
 //----------------------------ASM32串口标准配置实现----------------------------
 //只管输入串口的配置字，不参与串口的使能和其他寄存器操作
-void UsartHw_ASM32(struct _UsartDevCfg *pCfg,//串口配置结构体
+void UsartHw_ASM32(const struct _UsartDevCfg *pCfg,//串口配置结构体
                    void * pUsartHw,           //硬件设备指针
                    unsigned long Clk)        //当前串口使用的时钟
 {

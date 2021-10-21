@@ -87,7 +87,7 @@ unsigned short UsartDev_RcvStop(struct _UsartDev *pDev)
 //返回启动是否成功,0:成功,其它失败
 //注:发送缓冲区大小最高位置1表示在自动模式
 signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
-                               unsigned char *pBuf,         //发送缓冲区
+                               const unsigned char *pBuf,         //发送缓冲区
                                unsigned short Size,         //发送缓冲区大小
                                UsartDevInt_t SendEndInt) //发送回调函数
 {

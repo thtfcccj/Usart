@@ -34,7 +34,7 @@ struct _UsartDev{
   unsigned short RcvLen;               //已接收个数
   UsartDevInt_t  RcvEndInt;            //发送处理函数
   //发送缓冲区
-  unsigned char *pSendBuf;             //发送缓冲区
+  const unsigned char *pSendBuf;       //发送缓冲区
   unsigned short SendCount;            //发送缓冲区大小
   unsigned short SenLen;               //已发送个数
   UsartDevInt_t  SendEndInt;           //发送处理函数
@@ -88,7 +88,7 @@ unsigned short UsartDev_RcvStop(struct _UsartDev *pDev);
 //返回启动是否成功,0:成功,其它失败
 //注:发送缓冲区大小最高位置1表示在自动模式
 signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
-                               unsigned char *pBuf,         //发送缓冲区
+                               const unsigned char *pBuf,   //发送缓冲区
                                unsigned short Size,         //发送缓冲区大小
                                UsartDevInt_t SendEndInt);    //发送回调函数
 
