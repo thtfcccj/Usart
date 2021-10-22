@@ -40,7 +40,7 @@ void UsartHw_ASM32(const struct _UsartDevCfg *pCfg,//串口配置结构体
   pHw->BRG = (1 << 16) | _GetSCNT(UsartDevCfg_GetBuad(pCfg), Clk);
   
   //停止位个数控制
-	if(pHw->SCON  & USART_DEV_CFG_2_STOP)//两个停止位时
+	if(pCfg->Cfg  & USART_DEV_CFG_2_STOP)//两个停止位时
     pHw->SCON = (3 << 6) | (0 << 3); //工作模式3(b6),TB8用作停止位0(b3)
   else
     pHw->SCON = (1 << 6) | (0 << 3); //工作模式1
