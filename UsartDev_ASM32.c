@@ -177,13 +177,9 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
     }
     //最后一个数移入，但没发出,切换为完成中断
     else{
-      if(pUsartHw->ISR & USART_ISR_TI){//已经完成了
-        UsartDev_SendStop(pDev);//关闭发送完成中断
-        pDev->SendEndInt(pDev);//发送完成回调处理
-      }
-      else{
-        pUsartHw->SCON &= ~USART_SCON_TCIE;
-      }
+      UsartDev_SendStop(pDev);//关闭发送完成中断
+      pDev->SendEndInt(pDev);//发送完成回调处理
+      pUsartHw->SCON &= ~USART_SCON_TCIE;
     }
 	}
 }
