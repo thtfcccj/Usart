@@ -136,52 +136,56 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
 	 unsigned short RcvLen;
   
 	//接收完成中断
-	if((pUsartHw->SCON & USART_SCON_RCIE) && (pUsartHw->ISR & USART_ISR_RI)){
-		RcvData = pUsartHw->SBUF;//无条件接收数据
+	if(pUsartHw->ISR & USART_ISR_RI){
+	  RcvData = pUsartHw->SBUF;//无条件接收数据
     pUsartHw->ICR |= USART_ISR_RI;
-		pDev->RcvData = RcvData;
-	   //判断帧错误
-		if(pUsartHw->ISR & USART_ISR_FE){
-      pUsartHw->ICR |= USART_ISR_FE;
-			pDev->Flag |= USART_DEV_RCV_ERR;
-			return;
-		}
-		RcvLen = pDev->RcvLen;
-		//缓冲区溢出检查,溢出时后面的再也不收了！
-		if(RcvLen >= pDev->RcvCount){
-      if(pDev->RcvEndInt(pDev))//收完数据强制完成(可重启动)
-        UsartDev_RcvStop(pDev);
-			return;
-		}
-		//收到缓冲区中
-		*(pDev->pRcvBuf + RcvLen) = RcvData;
-		pDev->RcvLen++;
-		if(!(pDev->Flag & USART_DEV_RCV_AUTO)){
-			if(pDev->RcvEndInt(pDev))//手工停止了
-				UsartDev_RcvStop(pDev);
-		}
+    if(pUsartHw->SCON & USART_SCON_RCIE){//收数据过程中时
+      pDev->RcvData = RcvData;
+       //判断帧错误
+      if(pUsartHw->ISR & USART_ISR_FE){
+        pUsartHw->ICR |= USART_ISR_FE;
+        pDev->Flag |= USART_DEV_RCV_ERR;
+        return;
+      }
+      RcvLen = pDev->RcvLen;
+      //缓冲区溢出检查,溢出时后面的再也不收了！
+      if(RcvLen >= pDev->RcvCount){
+        if(pDev->RcvEndInt(pDev))//收完数据强制完成(可重启动)
+          UsartDev_RcvStop(pDev);
+        return;
+      }
+      //收到缓冲区中
+      *(pDev->pRcvBuf + RcvLen) = RcvData;
+      pDev->RcvLen++;
+      if(!(pDev->Flag & USART_DEV_RCV_AUTO)){
+        if(pDev->RcvEndInt(pDev))//手工停止了
+          UsartDev_RcvStop(pDev);
+      }
+    }//end 收数据过程中时
 	}
  
 	//发送完成中断
-  if((pUsartHw->SCON & USART_SCON_TCIE) && (pUsartHw->ISR & USART_ISR_TI)){
+  if(pUsartHw->ISR & USART_ISR_TI){
     pUsartHw->ICR |= USART_ISR_TI;
-    pDev->SenLen++; //已写入缓冲区一个数了
-    if(pDev->SenLen < pDev->SendCount){
-      if(!(pDev->Flag & USART_DEV_SEND_AUTO)){//发送完每个数通报
-        if(pDev->SendEndInt(pDev)){//用户让结束了
-          UsartDev_SendStop(pDev);
-          return;
+    if(pUsartHw->SCON & USART_SCON_TCIE){//发数据过程中时
+      pDev->SenLen++; //已写入缓冲区一个数了
+      if(pDev->SenLen < pDev->SendCount){
+        if(!(pDev->Flag & USART_DEV_SEND_AUTO)){//发送完每个数通报
+          if(pDev->SendEndInt(pDev)){//用户让结束了
+            UsartDev_SendStop(pDev);
+            return;
+          }
         }
+        pUsartHw->SBUF = pDev->pSendBuf[pDev->SenLen];//继续发送数
       }
-      pUsartHw->SBUF = pDev->pSendBuf[pDev->SenLen];//继续发送数
-    }
-    //最后一个数移入，但没发出,切换为完成中断
-    else{
-      UsartDev_SendStop(pDev);//关闭发送完成中断
-      pDev->SendEndInt(pDev);//发送完成回调处理
-      pUsartHw->SCON &= ~USART_SCON_TCIE;
-    }
-	}
+      //最后一个数移入，但没发出,切换为完成中断
+      else{
+        UsartDev_SendStop(pDev);//关闭发送完成中断
+        pDev->SendEndInt(pDev);//发送完成回调处理
+        pUsartHw->SCON &= ~USART_SCON_TCIE;
+      }
+	  }//end 发数据过程中时
+  }
 }
 
 
