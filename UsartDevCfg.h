@@ -49,6 +49,7 @@ extern struct _UsartDevCfg UsartDevCfg[USART_DEV_CFG_COUNT];
 #define USART_DEV_CFG_PAR_EN    0x02//校验允许,否则无校验
 #define USART_DEV_CFG_2_STOP    0x04//2个停止位,否则为1个
 #define USART_DEV_CFG_7_BIT     0x08//7个数据位,否则为8个
+#define USART_DEV_CFG_TYPE_MASK 0x0F//上述4类型
 
 #ifdef SUPPORT_USART_DEV_CFG_TINY    //精简模式时，Cfg高位为波特率枚举型
   #define USART_DEV_BUAD_SHIFT  4
