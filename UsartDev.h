@@ -39,6 +39,7 @@ struct _UsartDev{
   unsigned short SenLen;               //已发送个数
   UsartDevInt_t  SendEndInt;           //发送处理函数
   //其它:
+  unsigned char UsartId;              //回调函数可能需要的设备ID
   volatile unsigned char RcvData;      //缓冲最后一次接收的数据
 	volatile unsigned char Flag;         //相关标志，见定义
 };
@@ -62,7 +63,7 @@ struct _UsartDev{
 void UsartDev_Init(struct _UsartDev *pDev,
                    void * pUsartHw  //挂接的硬件
                    /*,void *pVoid*/);      //回调函数可能需要的指针
-
+          
 //-------------------------推存的重配置函数-------------------------------
 //送入配置参数,同时返回实际上的波特率
 //此函数将复位整个Usart的当前操作

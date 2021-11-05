@@ -30,10 +30,10 @@ extern const struct _SMenuFun SMenu_UsartDevCfgBuad;
 ****************************************************************************/
 
 //-----------------------由结构得到正在调整的------------------------------
-#ifdef SUPPORT_USART_DEV_CFG_MUTITON  //多例化时
+#if USART_DEV_CFG_COUNT >  1  //多个时
   const struct _UsartDevCfg *SMenu_UsartDevCfg_cbGet(struct _SMenuUser *pUser);
 #else
-  #define SMenu_UsartDevCfg_cbGet(user) USART_DEV_CFG_BASE
+  #define SMenu_UsartDevCfg_cbGet(user) &UsartDevCfg[0]
 #endif  
 
 #endif //_USART_DEV_CFG_H

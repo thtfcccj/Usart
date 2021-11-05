@@ -29,31 +29,32 @@
 #include "Eeprom.h"
 #include "InfoBase.h"
   
-struct _UsartDevCfg UsartDevCfg; //仅支持单例
+struct _UsartDevCfg UsartDevCfg[USART_DEV_CFG_COUNT];
 
 //----------------------------初始化函数----------------------------------
-void UsartDevCfg_Init(USART_DEV_CFG_P signed char IsInited)
+void UsartDevCfg_Init(signed char IsInited)
 {
-  if(!IsInited){//装载默认
-    USART_DEV_CFG_THIS_ Cfg = 0; //形参示例
-    memcpy(USART_DEV_CFG_BASE, 
-           UsartDevCfg_cbpGetDefault(USART_DEV_CFG_FTHIS),
-           sizeof(struct _UsartDevCfg));
-    UsartDevCfg_Save(USART_DEV_CFG_FTHIS);
-  }
-  else{
-    Eeprom_Rd(UsartDevCfg_GetInfoBase(USART_DEV_CFG_FTHIS),
-              USART_DEV_CFG_BASE,
-              sizeof(struct _UsartDevCfg));
+  for(unsigned char Ch = 0; Ch < USART_DEV_CFG_COUNT; Ch++){
+    if(!IsInited){//装载默认
+      memcpy(&UsartDevCfg[Ch], 
+             &UsartDevCfg_cbDefault[Ch],
+             sizeof(struct _UsartDevCfg));
+      UsartDevCfg_Save(Ch);
+    }
+    else{
+      Eeprom_Rd(UsartDevCfg_GetInfoBase(Ch),
+                &UsartDevCfg[Ch],
+                sizeof(struct _UsartDevCfg));
+    }
   }
 }
 
 //----------------------------保存函数----------------------------------
 //结构变化时调用此函数保存至EEPROM
-void UsartDevCfg_Save(USART_DEV_CFG_CPV)
+void UsartDevCfg_Save(unsigned char Ch)
 {
-    Eeprom_Wr(UsartDevCfg_GetInfoBase(USART_DEV_CFG_FTHIS),
-              USART_DEV_CFG_BASE,
+    Eeprom_Wr(UsartDevCfg_GetInfoBase(Ch),
+              &UsartDevCfg[Ch],
               sizeof(struct _UsartDevCfg));
 }
 
