@@ -65,6 +65,10 @@ void UsartHwIo_TimerIRQ(struct _UsartHwIo *pHwIo);
 //放入Rx引脚中断中
 void UsartHwIo_RxIRQ(struct _UsartHwIo *pHwIo);
 
+//-------------------------快速任务函数-----------------------
+//放入系统快速任务中查询
+void UsartHwIo_FastTask(struct _UsartHwIo *pHwIo);
+
 /*********************************************************************
                       UART硬件配置与收发相关函数
 *********************************************************************/
@@ -96,7 +100,7 @@ void UsartHwIo_Cfg(const struct _UsartDevCfg *pCfg,//串口配置结构体
                     硬件层回调函数
 *********************************************************************/            
 #include "IoCtrl.h" //部分驱动可直接实现
-                   
+
 //----------------------硬件中断回调函数------------------------
 //此函数在收发完一个数据后调用
 void UsartHwIo_cbUsartIRQ(struct _UsartHwIo *pHwIo);
