@@ -88,18 +88,19 @@ void UsartHwIo_RcvStop(struct _UsartHwIo *pHwIo);
 //---------------------------标准配置实现-------------------------
 #include "UsartDevCfg.h"
 //只管输入串口的配置字，不参与串口的使能和其他寄存器操作
-void UsartHwHo_Cfg(const struct _UsartDevCfg *pCfg,//串口配置结构体
+void UsartHwIo_Cfg(const struct _UsartDevCfg *pCfg,//串口配置结构体
                    void * pUsartHw,           //硬件设备指针
                    unsigned long Clk);        //当前串口使用的时钟
 
 /*********************************************************************
                     硬件层回调函数
 *********************************************************************/            
-
+#include "IoCtrl.h" //部分驱动可直接实现
+                   
 //----------------------硬件中断回调函数------------------------
 //此函数在收发完一个数据后调用
 void UsartHwIo_cbUsartIRQ(struct _UsartHwIo *pHwIo);
-   
+
 //-------------------------定时器操作----------------------------
 //通过波特率配置定时器,需实现为定时器预置为对应波特率定时器溢出
 void UsartHwIo_cbCfgTimer(void *pHwTimer, unsigned long Buad);  
@@ -108,19 +109,29 @@ void UsartHwIo_cbCfgTimer(void *pHwTimer, unsigned long Buad);
 void UsartHwIo_cbTimerStartRdy(void *pHwTimer);                        
 //正常启动定时器
 void UsartHwIo_cbTimerStart(void *pHwTimer);                                
-//停止定时器 
-void UsartHwIo_cbTimerStop(void *pHwTimer); 
+//停止定时器
+#ifndef UsartHwIo_cbTimerStop                
+  void UsartHwIo_cbTimerStop(void *pHwTimer); 
+#endif
 
 //-------------------------Rx中断操作----------------------------
-void UsartHwIo_cbRxStart(unsigned char Id); //启动Rx接收中断
-void UsartHwIo_cbRxStop(unsigned char Id); //停止Rx接收中断
+#ifndef UsartHwIo_cbRxStart
+  void UsartHwIo_cbRxStart(unsigned char Id); //启动并清Rx接收中断
+#endif
+#ifndef UsartHwIo_cbRxStop
+  void UsartHwIo_cbRxStop(unsigned char Id); //停止并清Rx接收中断
+#endif
 
 //----------------------Tx，Rx引脚操作----------------------------
-unsigned short UsartHwIo_cbIsRx(unsigned char Id); //Rx是否为高电平
-void UsartHwIo_cbSetTx(unsigned char Id); //Tx置为高电平
-void UsartHwIo_cbClrTx(unsigned char Id); //Tx置为低电平
-
-
+#ifndef UsartHwIo_cbIsRx
+  unsigned short UsartHwIo_cbIsRx(unsigned char Id); //Rx是否为高电平
+#endif
+#ifndef UsartHwIo_cbSetTx
+  void UsartHwIo_cbSetTx(unsigned char Id); //Tx置为高电平
+#endif  
+#ifndef UsartHwIo_cbClrTx
+  void UsartHwIo_cbClrTx(unsigned char Id); //Tx置为低电平
+#endif 
 
 #endif
 

@@ -24,33 +24,27 @@
 
 //-------------------------初始化函数---------------------------------------
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-void UsartDevIo_Init(struct _UsartDevIo *pDev,
+void UsartDevIo_Init(struct _UsartDev *pDev,
                    void * pUsartHw)  //挂接的硬件
-{
-  memset(pDev, 0, sizeof(struct _UsartDevIo));
-  pDev->pUsartHw = pUsartHw;
-  USART_TypeDef *pHw = (USART_TypeDef *)pUsartHw;  
-}
 #else
 void UsartDev_Init(struct _UsartDev *pDev,
                    void * pUsartHw)  //挂接的硬件
+#endif
 {
   memset(pDev, 0, sizeof(struct _UsartDev));
   pDev->pUsartHw = pUsartHw;
   USART_TypeDef *pHw = (USART_TypeDef *)pUsartHw;
 }
 
-#endif
-
 //---------------------Usart开始接收数据函数--------------------------------
 //启动USART接收数据,返回是否启动成功
 //返回启动是否成功,0:成功,其它失败
 //注:接收缓冲区大小最高位置1表示在自动模式
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-signed char UsartDevIo_RcvStart(struct _UsartDevIo *pDev,  //所带设备
+signed char UsartDevIo_RcvStart(struct _UsartDev *pDev,  //所带设备
                               unsigned char *pBuf,     //接收缓冲区
                               unsigned short Size,     //接收缓冲区大小
-                              UsartDevIoInt_t RcvEndInt)//接收回调函数
+                              UsartDevInt_t RcvEndInt)//接收回调函数
 #else
 signed char UsartDev_RcvStart(struct _UsartDev *pDev,  //所带设备
                               unsigned char *pBuf,     //接收缓冲区
@@ -80,7 +74,7 @@ signed char UsartDev_RcvStart(struct _UsartDev *pDev,  //所带设备
 //停止正在读过程中的数据或把接收置为停止状态
 //返回已接收到的数据个数
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-unsigned short UsartDevIo_RcvStop(struct _UsartDevIo *pDev)
+unsigned short UsartDevIo_RcvStop(struct _UsartDev *pDev)
 #else
 unsigned short UsartDev_RcvStop(struct _UsartDev *pDev)
 #endif
@@ -96,10 +90,10 @@ unsigned short UsartDev_RcvStop(struct _UsartDev *pDev)
 //返回启动是否成功,0:成功,其它失败
 //注:发送缓冲区大小最高位置1表示在自动模式
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-signed char UsartDevIo_SendStart(struct _UsartDevIo *pDev,      //所带设备
+signed char UsartDevIo_SendStart(struct _UsartDev *pDev,      //所带设备
                                const unsigned char *pBuf,         //发送缓冲区
                                unsigned short Size,         //发送缓冲区大小
-                               UsartDevIoInt_t SendEndInt) //发送回调函数
+                               UsartDevInt_t SendEndInt) //发送回调函数
 #else
 signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
                                const unsigned char *pBuf,         //发送缓冲区
@@ -130,7 +124,7 @@ signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
 //停止正在写过程中的数据或把发送置为停止状态
 //返回已发送到的数据个数
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-unsigned short UsartDevIo_SendStop(struct _UsartDevIo *pDev)
+unsigned short UsartDevIo_SendStop(struct _UsartDev *pDev)
 #else
 unsigned short UsartDev_SendStop(struct _UsartDev *pDev)
 #endif
@@ -152,7 +146,7 @@ unsigned short UsartDev_SendStop(struct _UsartDev *pDev)
 
 //---------------------USART硬件接收中断处理函数----------------------------
 #ifdef SUPPORT_USART_DEV_IO    //独立IO实现时
-void UsartDevIo_RcvIRQ(struct _UsartDevIo *pDev)
+void UsartDevIo_RcvIRQ(struct _UsartDev *pDev)
 #else
 void UsartDev_RcvIRQ(struct _UsartDev *pDev)
 #endif

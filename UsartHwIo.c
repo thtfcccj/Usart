@@ -162,10 +162,8 @@ void UsartHwIo_RxIRQ(struct _UsartHwIo *pHwIo)
 //放入系统快速任务中查询
 void UsartHwIo_FastTask(struct _UsartHwIo *pHwIo)
 {
-  unsigned char IsFinal = 
-    pHwIo->ISR & USART_HW_IO_ISR_TR_FINAL;
-  //没有待处理的数据
-  if(!IsFinal) return;
+  unsigned char IsFinal = pHwIo->ISR & USART_HW_IO_ISR_TR_FINAL;
+  if(!IsFinal) return;//没有待处理的数据 
   pHwIo->ISR &= ~USART_HW_IO_ISR_TR_FINAL;//先取消
   
   //数据发送后续处理:
@@ -173,7 +171,7 @@ void UsartHwIo_FastTask(struct _UsartHwIo *pHwIo)
     pHwIo->ISR |= USART_HW_IO_ISR_TI;//发送完成需中断
     UsartHwIo_cbUsartIRQ(pHwIo);//发送中断
     return;
-  } 
+  }
   //数据接收后续处理
   /*if(IsFinal & USART_HW_IO_ISR_RX_FINAL)*/{  
     _RcvPro(pHwIo); //:
@@ -234,7 +232,7 @@ void UsartHwIo_RcvStop(struct _UsartHwIo *pHwIo)
 
 //---------------------------标准配置实现-------------------------
 //只管输入串口的配置字，不参与串口的使能和其他寄存器操作
-void UsartHwHo_Cfg(const struct _UsartDevCfg *pCfg,//串口配置结构体
+void UsartHwIo_Cfg(const struct _UsartDevCfg *pCfg,//串口配置结构体
                    void * pUsartHw,           //硬件设备指针
                    unsigned long Clk)        //当前串口使用的时钟
 {
