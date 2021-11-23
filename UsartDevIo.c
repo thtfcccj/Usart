@@ -66,6 +66,7 @@ signed char UsartDev_RcvStart(struct _UsartDev *pDev,  //所带设备
   USART_TypeDef *pUsartHw = pDev->pUsartHw;
   //打开接收使能与中断
   pUsartHw->SCON |= USART_HW_IO_SCON_RE | USART_HW_IO_SCON_RCIE;
+  UsartHwIo_SendStop(pUsartHw);//仅支持半双工，停止可能的发送
   UsartHwIo_RcvStart(pUsartHw); //启动接收
   return 0;
 }
@@ -116,6 +117,7 @@ signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
   USART_TypeDef *pUsartHw = pDev->pUsartHw;
   pUsartHw->SBUF = *pBuf;//装载数据准备发送
   pUsartHw->SCON |= USART_HW_IO_SCON_TCIE;//发送完成中断使能
+  UsartHwIo_RcvStop(pUsartHw);//仅支持半双工，停止可能的接收
   UsartHwIo_SendStart(pUsartHw);
   return 0;
 }
@@ -163,7 +165,7 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
       pDev->RcvData = RcvData;
        //判断帧错误
       if(pUsartHw->ISR & USART_HW_IO_ISR_FE){
-        pUsartHw->ISR |= USART_HW_IO_ISR_FE; //清错误标志
+        pUsartHw->ISR &= ~USART_HW_IO_ISR_FE; //清错误标志
         pDev->Flag |= USART_DEV_RCV_ERR;
         return;
       }

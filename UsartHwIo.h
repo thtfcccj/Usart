@@ -16,20 +16,25 @@
 
 struct _UsartHwIo{
   //public: 外部可直接访问变量
-  unsigned char SCON;   //控制位，位定义见定义
-  unsigned char ISR;    //状态寄存器，位定义见定义 
-  unsigned char SBUF;   //接收完成，或待发送的数据  
+  volatile unsigned char SCON;   //控制位，位定义见定义
+  volatile unsigned char ISR;    //状态寄存器，位定义见定义 
+  unsigned char SBUF;            //接收完成，或待发送的数据  
   //private: 内部变量
-  unsigned char BitPos;  //正在发送的位,0待接收,1待判断起始字符
+  unsigned char UartCfg;        //同UsartDevCfg->Cfg低8位
+  unsigned short BitData;        //收到，或正在发送的数据
+  //接收FIFO缓冲
+  unsigned short CurBitData;    //正在接收的数据
+  volatile unsigned char BitPos;  //正在收发的位
                          //2~9为数据，10及以后由配置决定
-  unsigned short BitData;//正在接位收发的数据
-  unsigned char UartCfg;  //同UsartDevCfg->Cfg低8位
   //硬件拥有相关:
   unsigned char Id;     //此模拟的ID号,用于TX，Rx引脚 
   void *pHwTimer;       //拥有的硬件定时器
 };
 
 //控制位SCON位定义为:
+#define USART_HW_IO_SCON_TX_SPACE   0x40 //发送数据间隔(内部使用)
+#define USART_HW_IO_SCON_RX_WAIT    0x20 //接收数据时等待启动标志(内部使用)
+
 #define USART_HW_IO_SCON_RE         0x10 //接收使能
 #define USART_HW_IO_SCON_RCIE       0x01 //使能接收完成中断
 #define USART_HW_IO_SCON_TCIE       0x02 //使能发送完成中断
@@ -44,7 +49,6 @@ struct _UsartHwIo{
 #define USART_HW_IO_ISR_ESTOP       0x08 //停止位错误
 
 #define USART_HW_IO_ISR_FE          0x04 //接收帧错误标志位
-#define USART_HW_IO_ISR_FE          0x04 //接收帧错误标志位
 #define USART_HW_IO_ISR_TI          0x02 //发送完成中断
 #define USART_HW_IO_ISR_RI          0x01 //接收完成中断
 
@@ -58,11 +62,11 @@ void UsartHwIo_Init(struct _UsartHwIo *pHwIo,
                     void *pHwTimer); //挂接的硬件定时器
 
 //-------------------硬件定时器中断处理函数--------------------
-//放入对应的硬件定时器中断中
+//放入对应的硬件定时器中断中,注意调用前应清除中断
 void UsartHwIo_TimerIRQ(struct _UsartHwIo *pHwIo);
 
 //---------------Rx引脚收到起始沿中断处理函数--------------------
-//放入Rx引脚中断中
+//放入Rx引脚中断中,注意调用前应清除中断
 void UsartHwIo_RxIRQ(struct _UsartHwIo *pHwIo);
 
 //-------------------------快速任务函数-----------------------
@@ -112,8 +116,12 @@ void UsartHwIo_cbCfgTimer(void *pHwTimer, unsigned long Buad);
 //预启动定时器，主要为接收到起始沿时，定时器加快1倍以在中间采样。
 void UsartHwIo_cbTimerStartRdy(void *pHwTimer);                        
 //正常启动定时器
-void UsartHwIo_cbTimerStart(void *pHwTimer);                                
-//停止定时器
+void UsartHwIo_cbTimerStart(void *pHwTimer);
+//正常启动定时器并发送间隔帧(两帧数据间的间隔)->程序延时发送后也够了
+//void UsartHwIo_cbTimerStartSpace(void *pHwTimer);
+#define UsartHwIo_cbTimerStartSpace(hwTimer) UsartHwIo_cbTimerStart(hwTimer)
+
+//停止定时器,建议停止同时清一下此定时器中断
 #ifndef UsartHwIo_cbTimerStop                
   void UsartHwIo_cbTimerStop(void *pHwTimer); 
 #endif
