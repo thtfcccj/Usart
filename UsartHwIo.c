@@ -56,10 +56,10 @@ static void _RcvPro(struct _UsartHwIo *pHwIo)
     //寄偶校验
     unsigned char Par = ((_GetPar(SBUF) & 0x01) ^ (Data & 0x01));
     if(pHwIo->UartCfg & USART_DEV_CFG_ODD){//奇校验
-      if(Par) pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_EPAR;
+      if(!Par) pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_EPAR;
     }
     else{//偶校验：当实际数据中“1”的个数为偶数的时候，这个校验位就是“0”
-      if(!Par) pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_EPAR;
+      if(Par) pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_EPAR;
     }
     Data >>= 1;//寄偶校验后了
   }
@@ -70,7 +70,7 @@ static void _RcvPro(struct _UsartHwIo *pHwIo)
     Data >>= 1;//到最后一停止位了    
   }
   if(!(Data & 0x01)) //停止位应为高电平
-    pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;   
+    pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;
 }
 
 //-----------------------得到发送位函数-----------------------------

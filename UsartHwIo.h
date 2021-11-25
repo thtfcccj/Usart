@@ -117,9 +117,10 @@ void UsartHwIo_cbCfgTimer(void *pHwTimer, unsigned long Buad);
 void UsartHwIo_cbTimerStartRdy(void *pHwTimer);                        
 //正常启动定时器
 void UsartHwIo_cbTimerStart(void *pHwTimer);
-//正常启动定时器并发送间隔帧(两帧数据间的间隔)->程序延时发送后也够了
-//void UsartHwIo_cbTimerStartSpace(void *pHwTimer);
-#define UsartHwIo_cbTimerStartSpace(hwTimer) UsartHwIo_cbTimerStart(hwTimer)
+//正常启动定时器并发送间隔帧(两帧数据间的间隔)
+void UsartHwIo_cbTimerStartSpace(void *pHwTimer);
+//->程序延时发送后也够了：
+//#define UsartHwIo_cbTimerStartSpace(hwTimer) UsartHwIo_cbTimerStart(hwTimer)
 
 //停止定时器,建议停止同时清一下此定时器中断
 #ifndef UsartHwIo_cbTimerStop                
