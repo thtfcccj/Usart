@@ -19,9 +19,8 @@
 //定义托管的数据，如通讯地址，默认不支持
 //#define USART_DEV_CFG_USER  //示例:   unsigned char Adr; unsigned char Para;
 
-
 //定义支持保存，支持时为独立模块
-#define SUPPORT_USART_DEV_CFG_SAVE
+//#define SUPPORT_USART_DEV_CFG_SAVE
 
 //管理个数
 #ifndef USART_DEV_CFG_COUNT
