@@ -56,6 +56,8 @@ void UsartDevCfg_Save(unsigned char Ch)
     Eeprom_Wr(UsartDevCfg_GetInfoBase(Ch),
               &UsartDevCfg[Ch],
               sizeof(struct _UsartDevCfg));
+  
+    UsartDevCfg_cbSaveNotify(Ch);//通报以实现参数更新到底层
 }
 
 #endif //SUPPORT_USART_DEV_CFG_SAVE

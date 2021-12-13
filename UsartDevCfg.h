@@ -141,5 +141,10 @@ extern const struct _UsartDevCfg UsartDevCfg_cbDefault[USART_DEV_CFG_COUNT];
 #define UsartDevCfg_Set7Bit(pcfg) do{(pcfg)->Cfg |= USART_DEV_CFG_7_BIT;}while(0)  
 #define UsartDevCfg_Clr7Bit(pcfg) do{(pcfg)->Cfg &= ~USART_DEV_CFG_7_BIT;}while(0)     
 
+//------------------------------------通报以实现参数更新到底层------------------------------------
+//#define UsartDevCfg_cbSaveNotify(ch) do{}while(0)  //不支持时可实现为空
+void UsartDevCfg_cbSaveNotify(unsigned char Id);
+
+
 #endif
 
