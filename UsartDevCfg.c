@@ -45,6 +45,7 @@ void UsartDevCfg_Init(signed char IsInited)
       Eeprom_Rd(UsartDevCfg_GetInfoBase(Ch),
                 &UsartDevCfg[Ch],
                 sizeof(struct _UsartDevCfg));
+      UsartDevCfg_cbSaveNotify(Ch);//通报以实现参数更新到底层
     }
   }
 }
