@@ -29,7 +29,10 @@ typedef union _UsartDevCfgUser0{
 #define USART_DEV_UMODE_MASK       0xf0
 #define USART_DEV_UMODE_SLAVE      0     //从机模式
 #define USART_DEV_UMODE_MASTER     1     //主机模式
-                                     //其它如主机,从机,打印机，WIFI等,由用户决定
+                               //2~15: 其它如打印机，WIFI等,由用户决定
+#ifndef USART_DEV_UMODE_COUNT
+  #define USART_DEV_UMODE_COUNT      2   //现支持模式总数
+#endif
 
 //工作模式对应通讯协议,如Modbus,透传等,具体由用户决定
 #define USART_DEV_UPROTOCOL_SHIRT  2

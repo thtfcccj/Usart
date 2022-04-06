@@ -51,7 +51,7 @@ static const unsigned char _MasterAdmin[] = //主机模式管理员
 static const unsigned char _SlaveAdmin[] = //从机模式管理员
 {1,    5};
 
-//为管理员模式查找表掩码
+//工作模式对应是否为主机
 extern unsigned short UsartDevCfgU0_cbIsMasterMask;
 
 //----------------------------------回调函数------------------------------- 
@@ -114,7 +114,7 @@ static void _Notify(unsigned char Type,//通报类型
     }
     else{
       if(Power_IsSuper()) pLUT = _SlaveSuper;
-      else pLUT = _SlaveAdmin;    
+      else pLUT = _SlaveAdmin;
     }
     memcpy(pv, pLUT, *pLUT + 1);
     break;

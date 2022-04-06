@@ -28,8 +28,8 @@ unsigned char UsartDevCfgTMenu_cbGetId(void);
 
 //----------------------------自已的父菜单----------------------------------
 #ifndef USART_DEV_CFG_TMENU_PARENT
-  extern  TMenu_t Menu_Buf; //可能有多个派生类，用RAM实现
-  #define USART_DEV_CFG_TMENU_PARENT  &Menu_Buf
+  extern  const TMenu_t BusMng_TMenu;
+  #define USART_DEV_CFG_TMENU_PARENT  &BusMng_TMenu
 #endif
 
 #endif //_DI_DEV_TMENU_H
