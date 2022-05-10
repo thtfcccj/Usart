@@ -57,13 +57,13 @@ extern unsigned short UsartDevCfgU0_cbIsMasterMask;
 //----------------------------------回调函数------------------------------- 
 //描述
 static const struct _MNumDesc _Desc[] = {
-  {MNUM_TYPE_DEC, 0, 15},//工作模式
-  {MNUM_TYPE_DEC, 0, 3},//通讯协议
-  {MNUM_TYPE_DEC, 0, 3},//参数配置
-  {MNUM_TYPE_DEC, 0, 255},//帧间隔时间
-  {MNUM_TYPE_DEC, 10,255},//接收等待时间
-  {MNUM_TYPE_DEC, 1, 255},//从机地址
-  {MNUM_TYPE_DEC, 20,255},//路由等待时间
+  {MNUM_TYPE_DEC, 0, 15},//0工作模式下的通讯协议  
+  {MNUM_TYPE_DEC, 0, 3},//1工作模式下的通讯协议
+  {MNUM_TYPE_DEC, 0, 3},//2工作模式与协议下的配置
+  {MNUM_TYPE_DEC, 0, 255},//3(主机模式)帧间隔时间
+  {MNUM_TYPE_DEC, 10,255},//4(主机模式)接收等待时间
+  {MNUM_TYPE_DEC, 1, 255},//5(从机模式)从机地址
+  {MNUM_TYPE_DEC, 20,255},//6(从机模式)路由等待时间
 };
 
 static void _Notify(unsigned char Type,//通报类型
@@ -74,48 +74,66 @@ static void _Notify(unsigned char Type,//通报类型
   struct _UsartDevCfg *pCfg = &UsartDevCfg[UsartDevCfgTMenu_cbGetId()];
   struct _MNumAdjUser *pUser = (struct _MNumAdjUser *)pv;
   
+  //准备查找表
+  const unsigned char *pLUT;
+  if(UsartDevCfgU0_cbIsMasterMask & (1 << (pCfg->U.M.Cfg >> 4))){
+    if(Power_IsAdminMoreUp()) pLUT = _MasterSuper;
+    else pLUT = _MasterAdmin;
+  }
+  else{
+    if(Power_IsAdminMoreUp()) pLUT = _SlaveSuper;
+    else pLUT = _SlaveAdmin;
+  }
+  
   switch(Type){
   case TM_NOTIFY_GET_DATA:{ //将当前值装入
-    pUser->Value[0] = pCfg->U.M.Cfg >> 4;
-    pUser->Value[1] = (pCfg->U.M.Cfg >> 2) & 0x03;  
-    pUser->Value[2] = pCfg->U.M.Cfg & 0x03;   
-    pUser->Value[3] = pCfg->U.M.SpaceT;//帧间隔时间
-    pUser->Value[4] = pCfg->U.M.WaitT; //接收等待时间
-    pUser->Value[5] = pCfg->U.S.Adr;//从机地址
-    pUser->Value[6] = pCfg->U.S.WaitRoute; //路由等待时间
+    unsigned char LutCount = *pLUT++;
+    for(unsigned char Pos = 0; Pos < LutCount; Pos++){
+      unsigned char Data; //获得当前值
+      switch(pLUT[Pos]){
+        case 0: Data  = pCfg->U.M.Cfg >> 4;  break; //工作模式
+        case 1: Data = (pCfg->U.M.Cfg >> 2) & 0x03; break;//工作模式下的通讯协议
+        case 2: Data = pCfg->U.M.Cfg & 0x03;  break; //工作模式与协议下的配置
+        
+        case 3: Data = pCfg->U.M.SpaceT;  break;//(主机模式)帧间隔时间
+        case 4: Data = pCfg->U.M.WaitT;  break;//(主机模式)接收等待时间
+        case 5: Data = pCfg->U.S.Adr;  break;//(从机模式)从机地址
+        case 6: Data = pCfg->U.S.WaitRoute;  break;//(从机模式)路由等待时间
+      }
+      pUser->Value[Pos] = Data;
+    }
     break;
   }
   case TM_NOTIFY_SET_DATA:{ //保存设定值
-    pCfg->U.M.Cfg = (pUser->Value[0] << 4) |
-                    (pUser->Value[1] << 2) | 
-                    pUser->Value[2];
-    if(pCfg->U.M.SpaceT != pUser->Value[3])
-      pCfg->U.M.SpaceT = pUser->Value[3];//帧间隔时间
-    else pCfg->U.M.SpaceT = pUser->Value[5];//从机地址
-    
-    if(pCfg->U.M.WaitT != pUser->Value[4])   
-      pCfg->U.M.WaitT = pUser->Value[4]; //接收等待时间
-    else pCfg->U.S.WaitRoute = pUser->Value[6];//路由等待时间 
-    
+    unsigned char LutCount = *pLUT++;
+    for(unsigned char Pos = 0; Pos < LutCount; Pos++){
+      unsigned char Data = pUser->Value[Pos]; //获得当前值
+      switch(pLUT[Pos]){
+        case 0: //工作模式        
+          pCfg->U.M.Cfg &= ~USART_DEV_UMODE_MASK;
+          pCfg->U.M.Cfg |= Data << 4; break;        
+        case 1://工作模式下的通讯协议
+          pCfg->U.M.Cfg &= ~USART_DEV_UPROTOCOL_MASK;
+          pCfg->U.M.Cfg |= Data << 2; break;
+        case 2://工作模式与协议下的配置
+          pCfg->U.M.Cfg &= ~USART_DEV_UPARA_MASK;
+          pCfg->U.M.Cfg |= Data; break;          
+        case 3: pCfg->U.M.SpaceT = Data;  break;//(主机模式)帧间隔时间
+        case 4: pCfg->U.M.WaitT = Data;  break;//(主机模式)接收等待时间
+        case 5: pCfg->U.S.Adr = Data;  break;//(从机模式)从机地址
+        case 6: pCfg->U.S.WaitRoute = Data;  break;//(从机模式)路由等待时间          
+      }
+    }
     UsartDevCfg_Save(UsartDevCfgTMenu_cbGetId());
     UiTips_UpdateS(ls_OpFinal); //提示成功
     break; 
   }
   case TM_NOTIFY_MNUM_GET_DESC:{ //得到数值描述
-    memcpy(&pUser->Desc,  &_Desc[pUser->CurItem], 
+    memcpy(&pUser->Desc,  &_Desc[pLUT[pUser->CurItem + 1]], 
            sizeof(struct _MNumDesc));
     break;
   }
   case TM_NOTIFY_USER_GET_LUT:{ //得到查找表
-    const unsigned char *pLUT;
-    if(UsartDevCfgU0_cbIsMasterMask & (1 << (pCfg->U.M.Cfg >> 4))){
-      if(Power_IsSuper()) pLUT = _MasterSuper;
-      else pLUT = _MasterAdmin;
-    }
-    else{
-      if(Power_IsSuper()) pLUT = _SlaveSuper;
-      else pLUT = _SlaveAdmin;
-    }
     memcpy(pv, pLUT, *pLUT + 1);
     break;
   }
@@ -131,7 +149,7 @@ const LanCode_t* const lsAry_U0[] = {
 //----------------------U0模式的菜单结构-------------------------
 const TMenu_t UsartDevCfgU0_TMenu = {//菜单结构
   TMTYPE_MNUMADJ | TM_MNUMADJ_WRITE, //菜单类型为多值调整模式模式与用户区标志
-  0x80 | 5,                          //由菜单类型决定的相关数据大小
+  0x80 | 7,                          //由菜单类型决定的相关数据大小
   ls_WorkParaSet,                    //菜单头,为NULL时从回调里读取
   USART_DEV_CFG_TMENU_PARENT,        //自已的父菜单
   lsAry_U0,                         //存放自已的子菜单阵列连接头
