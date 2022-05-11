@@ -13,13 +13,13 @@
 typedef union _UsartDevCfgUser0{
   struct{
     unsigned char Cfg;        //相关配置,见定义
-    unsigned char SpaceT;   //数据帧间隔时间,ms为单位    
-    unsigned char WaitT;    //发送数据后的等待时间,ms为单位
+    unsigned char SpaceT;     //数据帧间隔时间,ms为单位    
+    unsigned char WaitT;      //发送数据后的等待时间,ms为单位
   }M; //主机模式时
   struct{
     unsigned char Cfg;        //相关配置，见定义
+    unsigned char SpaceT;     //数据帧间隔时间,超过此时间认为一帧数据完成    
     unsigned char Adr;        //从机地址
-    unsigned char WaitRoute;  //设备做中转合用时，等待下级设备返回时间
   }S; //从机模式时
 }UsartDevCfgUser0_t;
 
@@ -36,7 +36,7 @@ typedef union _UsartDevCfgUser0{
 
 //工作模式对应通讯协议,如Modbus,透传等,具体由用户决定
 #define USART_DEV_UPROTOCOL_SHIRT  2
-#define USART_DEV_UPROTOCOL_MASK   0xC0 
+#define USART_DEV_UPROTOCOL_MASK   0x0C 
 
 //工作模式与协议下的配置(如MODBUS下的RTU与ASC)
 #define USART_DEV_UPARA_MASK       0x03 

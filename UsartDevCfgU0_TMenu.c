@@ -13,6 +13,8 @@
 #include <string.h>
 #include "TMenuBuf.h"
 
+#include "EepromInner.h"
+
 //--------------------------------内部字符资源--------------------------------- 
 #ifdef TM_EN_MUTI_LAN            //常量选择型多国语言时
   //暂不支持常量选择型字符串
@@ -98,13 +100,14 @@ static void _Notify(unsigned char Type,//通报类型
         case 3: Data = pCfg->U.M.SpaceT;  break;//(主机模式)帧间隔时间
         case 4: Data = pCfg->U.M.WaitT;  break;//(主机模式)接收等待时间
         case 5: Data = pCfg->U.S.Adr;  break;//(从机模式)从机地址
-        case 6: Data = pCfg->U.S.WaitRoute;  break;//(从机模式)路由等待时间
+        case 6: Data = pCfg->U.S.SpaceT;  break;//(从机模式)数据间隔
       }
       pUser->Value[Pos] = Data;
     }
     break;
   }
   case TM_NOTIFY_SET_DATA:{ //保存设定值
+    unsigned char PrvUMode = pCfg->U.M.Cfg & USART_DEV_UMODE_MASK;
     unsigned char LutCount = *pLUT++;
     for(unsigned char Pos = 0; Pos < LutCount; Pos++){
       unsigned char Data = pUser->Value[Pos]; //获得当前值
@@ -121,11 +124,15 @@ static void _Notify(unsigned char Type,//通报类型
         case 3: pCfg->U.M.SpaceT = Data;  break;//(主机模式)帧间隔时间
         case 4: pCfg->U.M.WaitT = Data;  break;//(主机模式)接收等待时间
         case 5: pCfg->U.S.Adr = Data;  break;//(从机模式)从机地址
-        case 6: pCfg->U.S.WaitRoute = Data;  break;//(从机模式)路由等待时间          
+        case 6: pCfg->U.S.SpaceT = Data;  break;//(从机模式)数据间隔          
       }
     }
     UsartDevCfg_Save(UsartDevCfgTMenu_cbGetId());
     UiTips_UpdateS(ls_OpFinal); //提示成功
+    //模式的转换，需要重新分配类型分别挂接，故需要回写保存
+    if(PrvUMode != (pCfg->U.M.Cfg & USART_DEV_UMODE_MASK)){
+      Eeprom_ForceWrBufAndRestart();
+    }
     break; 
   }
   case TM_NOTIFY_MNUM_GET_DESC:{ //得到数值描述
