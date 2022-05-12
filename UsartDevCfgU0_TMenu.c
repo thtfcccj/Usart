@@ -62,10 +62,10 @@ static const struct _MNumDesc _Desc[] = {
   {MNUM_TYPE_DEC, 0, 15},//0工作模式下的通讯协议  
   {MNUM_TYPE_DEC, 0, 3},//1工作模式下的通讯协议
   {MNUM_TYPE_DEC, 0, 3},//2工作模式与协议下的配置
-  {MNUM_TYPE_DEC, 0, 255},//3(主机模式)帧间隔时间
+  {MNUM_TYPE_DEC, 1, 255},//3(主机模式)帧间隔时间
   {MNUM_TYPE_DEC, 10,255},//4(主机模式)接收等待时间
   {MNUM_TYPE_DEC, 1, 255},//5(从机模式)从机地址
-  {MNUM_TYPE_DEC, 20,255},//6(从机模式)路由等待时间
+  {MNUM_TYPE_DEC, 1, 255},//6(从机模式)帧间隔时间
 };
 
 static void _Notify(unsigned char Type,//通报类型

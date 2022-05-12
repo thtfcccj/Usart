@@ -14,19 +14,24 @@
 #define USART_TypeDef  M4_USART_TypeDef
 
 //CR1中使用的位:
+#define USART_CR1_CORE    (1 <<19)//b19 ORE标志清零位
 #define USART_CR1_CFE     (1 <<17)//b17 FE标志清零位 FE标志清零位
 #define USART_CR1_CPE     (1 <<16)//b16 PE标志清零位
+#define USART_CR1_CERR    (USART_CR1_CORE | USART_CR1_CFE | USART_CR1_CPE)//所有故障位
 
 #define USART_CR1_TXEIE   (1 << 7)//b7 发送数据寄存器空中断使能位
 #define USART_CR1_TCIE    (1 << 6)//b6 发送完成中断使 能位
 #define USART_CR1_RIE     (1 << 5)//b5 接收中断使能位
 #define USART_CR1_TE      (1 << 3)//b3 发送器使能位
 #define USART_CR1_RE      (1 << 2)//b2 接收器使能位 接收器使能位
+  
 
 //SR中使用的位:
 #define USART_SR_TXE   (1 << 7)//b7 发送数据寄存器空
 #define USART_SR_TC    (1 << 6)//b6 发送完成标志
 #define USART_SR_RXNE  (1 << 5)//b5 接收数据寄存器不为空
+
+#define USART_SR_ORE  (1 << 3)//b3 接收数据寄存器未被读取的情况下，又接收到一帧新的数据
 
 #define USART_SR_FE    (1 << 1)//b1 接收帧错误
 #define USART_SR_PE    (1 << 1)//b0 接收数据校验错误标志
@@ -81,7 +86,7 @@ unsigned short UsartDev_RcvStop(struct _UsartDev *pDev)
   //停止接收，关闭接收中断
   pUsartHw->CR1 &= ~(USART_CR1_RE | USART_CR1_RIE);
   //清除故障状态值	
-  pUsartHw->CR1 |=  USART_CR1_CFE | USART_CR1_CPE;
+  pUsartHw->CR1 |=  USART_CR1_CFE | USART_CR1_CPE | USART_CR1_CORE;
   
   if(pUsartHw->SR & USART_SR_RXNE){//读数清接收中断
     volatile unsigned char dump = pUsartHw->DR;
@@ -130,6 +135,7 @@ unsigned short UsartDev_SendStop(struct _UsartDev *pDev)
   //停止发送,关发送中断
   pUsartHw->CR1 &= ~(USART_CR1_TCIE | USART_CR1_TXEIE | USART_CR1_TE);
 
+  //pUsartHw->CR1 |=  USART_CR1_CORE;//清故障值
   //if(pUsartHw->SR & USART_SR_TXE)//写数清发送中断
   //  pUsartHw->DR = 0;
   
@@ -144,16 +150,19 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
    unsigned char RcvData;
 	 unsigned short RcvLen;
   
+   //接收数据帧错误，或接收数据有丢失时
+   if(pUsartHw->SR & (USART_SR_ORE | USART_SR_FE | USART_SR_PE)){
+     //ORE=1后不能继续接收数据，时钟同步模式下也不能发送数据
+     //FE=1时收到的数据会保留但是RI中断不会发生，FE=1后不能继续接收数据
+     //PE=1时收到的数据会保留但是RI中断不会发生，PE=1后不能继续接收数据
+     pUsartHw->CR1 |= USART_CR1_CORE | USART_CR1_CFE | USART_CR1_CPE;//强制清除
+     pDev->Flag |= USART_DEV_RCV_ERR; //置接收错误
+   }
+   
 	//接收完成中断
-	if((pUsartHw->CR1 & USART_SR_RXNE) && (pUsartHw->SR & USART_SR_RXNE)){
-		RcvData = pUsartHw->DR;//无条件接收数据,自动清接收空中断
+	if((pUsartHw->CR1 & USART_CR1_RIE) && (pUsartHw->SR & USART_SR_RXNE)){
+		RcvData = pUsartHw->DR >> 16;//无条件接收数据,自动清接收空中断
 		pDev->RcvData = RcvData;
-	  //判断帧错误
-	  if(pUsartHw->SR & (USART_SR_FE | USART_SR_PE)){
-      pUsartHw->CR1 |=  USART_CR1_CFE | USART_CR1_CPE;//清除故障状态值
-			pDev->Flag |= USART_DEV_RCV_ERR;
-			return;
-		}
 		RcvLen = pDev->RcvLen;
 		//缓冲区溢出检查,溢出时后面的再也不收了！
 		if(RcvLen >= pDev->RcvCount){
