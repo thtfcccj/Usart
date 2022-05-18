@@ -32,7 +32,8 @@ struct _UsartHwIo{
 };
 
 //控制位SCON位定义为:
-#define USART_HW_IO_SCON_TX_SPACE   0x40 //发送数据间隔(内部使用)
+#define USART_HW_IO_SCON_TX_SPACE   0x80 //发送数据间隔(内部使用)
+#define USART_HW_IO_SCON_TX_WAIT    0x40 //发送起始位前等待
 #define USART_HW_IO_SCON_RX_WAIT    0x20 //接收数据时等待启动标志(内部使用)
 
 #define USART_HW_IO_SCON_RE         0x10 //接收使能

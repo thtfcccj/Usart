@@ -10,9 +10,24 @@
                         系统调用相关函数实现
 *********************************************************************/
 
-//---------------由配置得到收发位函数--------------------
+//---------------由配置得到接收位函数--------------------
 //表, 0b校验允许, 1b两停止位 ，2b7个数据位
-static const unsigned char _Cfg2MaxLen[] = {
+static const unsigned char _Cfg2MaxRxLen[] = {
+    //停止位:因空闲电平且后跟字节间隔，故可不需要以提高容错能力
+   10 - 1, //0,1起+8数+0校+1停
+   11 - 1, //1,1起+8数+1校+1停 
+   11 - 2, //2,1起+8数+0校+2停
+   12 - 2, //3,1起+8数+1校+2停
+    9 - 1,  //4,1起+7数+0校+1停 
+   10 - 1, //5,1起+7数+1校+1停 
+   10 - 2, //6,1起+7数+0校+2停 
+   11 - 2, //7,1起+7数+1校+2停   
+};
+#define _GetMaxRxLen(hw) _Cfg2MaxRxLen[((hw)->UartCfg & 0x0f) >> 1]
+
+//---------------由配置得到发送位函数--------------------
+//表, 0b校验允许, 1b两停止位 ，2b7个数据位
+static const unsigned char _Cfg2MaxTxLen[] = {
    10, //0,1起+8数+0校+1停
    11, //1,1起+8数+1校+1停 
    11, //2,1起+8数+0校+2停
@@ -22,7 +37,8 @@ static const unsigned char _Cfg2MaxLen[] = {
    10, //6,1起+7数+0校+2停 
    11, //7,1起+7数+1校+2停   
 };
-#define _GetMaxLen(hw) _Cfg2MaxLen[((hw)->UartCfg & 0x0f) >> 1]
+#define _GetMaxTxLen(hw) _Cfg2MaxTxLen[((hw)->UartCfg & 0x0f) >> 1]
+
 
 //-----------------------得到校验位函数-----------------------------
 //返回数据中1的个数
@@ -63,20 +79,20 @@ static void _RcvPro(struct _UsartHwIo *pHwIo)
     }
     Data >>= 1;//寄偶校验后了
   }
-  //双停止位
-  if(pHwIo->UartCfg & USART_DEV_CFG_2_STOP){
-    if(!(Data & 0x01)) //停止位应为高电平
-      pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;
-    Data >>= 1;//到最后一停止位了    
-  }
-  if(!(Data & 0x01)) //停止位应为高电平
-    pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;
+  //停止位:因空闲电平且后跟字节间隔，故可不需要以提高容错能力
+  //if(pHwIo->UartCfg & USART_DEV_CFG_2_STOP){双停止位
+  //  if(!(Data & 0x01)) //停止位应为(空闲)高电平
+  //    pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;
+  //  Data >>= 1;//到最后一停止位了    
+  //}
+  //if(!(Data & 0x01)) //停止位应为(空闲)高电平
+  //  pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_ESTOP;
 }
 
 //-----------------------得到发送位函数-----------------------------
 static unsigned short  _GetSendBitData(const struct _UsartHwIo *pHwIo)
 {
-  unsigned short Data = (unsigned short)pHwIo->SBUF << 1;//停止位为0
+  unsigned short Data = (unsigned short)pHwIo->SBUF << 1;//停止位为1空闲
   unsigned short Mask;
   if(pHwIo->UartCfg & USART_DEV_CFG_7_BIT){
     Data &= ~0x100;//取消最高位
@@ -130,7 +146,7 @@ void UsartHwIo_TimerIRQ(struct _UsartHwIo *pHwIo)
     pHwIo->BitPos++;//下一位 
 
     //接收完成
-    if(pHwIo->BitPos > _GetMaxLen(pHwIo)){
+    if(pHwIo->BitPos > _GetMaxRxLen(pHwIo)){
       //缓冲后继续可能的接收防止丢失
       pHwIo->ISR = USART_HW_IO_ISR_RX_FINAL; //接收完成待处理
       pHwIo->BitData = pHwIo->CurBitData;
@@ -140,18 +156,20 @@ void UsartHwIo_TimerIRQ(struct _UsartHwIo *pHwIo)
   }
   //===================发送时处理=======================
   if(pHwIo->SCON & USART_HW_IO_SCON_TCIE){
-    //空闲帧发送完，开始发送数的起始帧
-    if(pHwIo->SCON & USART_HW_IO_SCON_TX_SPACE){
-      pHwIo->SCON &= ~USART_HW_IO_SCON_TX_SPACE;
-      UsartHwIo_SendStart(pHwIo);
+    //起始帧间隔准备完，开始发起始帧
+    if(pHwIo->SCON & USART_HW_IO_SCON_TX_WAIT){
+      pHwIo->SCON &= ~USART_HW_IO_SCON_TX_WAIT;
+      UsartHwIo_cbClrTx(pHwIo->Id);
       return;
     }
+    
     //数据发送完成
     pHwIo->BitPos++;//发送完一位了 
-    if(pHwIo->BitPos >= _GetMaxLen(pHwIo)){
+    if(pHwIo->BitPos >= _GetMaxTxLen(pHwIo)){
       UsartHwIo_cbSetTx(pHwIo->Id);//恢复高电平
       UsartHwIo_cbTimerStop(pHwIo->pHwTimer);//停止定时器
       pHwIo->ISR = USART_HW_IO_ISR_TX_FINAL; //发送完成待处理
+      return;
     }
     //一位位发送数据
     if(pHwIo->CurBitData & ((unsigned short)1 << pHwIo->BitPos))
@@ -186,11 +204,9 @@ void UsartHwIo_FastTask(struct _UsartHwIo *pHwIo)
   if(IsFinal & USART_HW_IO_ISR_TX_FINAL){
     pHwIo->ISR |= USART_HW_IO_ISR_TI;//发送完成需中断
     UsartHwIo_cbUsartIRQ(pHwIo);//发送中断
-    //继续发送下个数时重启动发送间隔
+    //还有数要继续发送时重新发送
     if(pHwIo->SCON & USART_HW_IO_SCON_TCIE){
-      pHwIo->SCON |= USART_HW_IO_SCON_TX_SPACE;
-      UsartHwIo_cbSetTx(pHwIo->Id);//高电平空闲
-      UsartHwIo_cbTimerStartSpace(pHwIo);
+      UsartHwIo_SendStart(pHwIo);
     }
     //else UsartHwIo_cbTimerStop();//发送完成了，上层应自动调用停止
     return;
@@ -217,11 +233,9 @@ void UsartHwIo_SendStart(struct _UsartHwIo *pHwIo)
   pHwIo->BitPos = 0;
   pHwIo->CurBitData = _GetSendBitData(pHwIo); 
   pHwIo->ISR = 0;//复位本次状态相关
-  
-  __disable_irq(); //临界区操作
-  UsartHwIo_cbClrTx(pHwIo->Id);//低电平启动,中断时发送完起动位了
-  UsartHwIo_cbTimerStart(pHwIo->pHwTimer); //启动定时器
-	__enable_irq();
+  //启动定时器准备发起始帧间隔
+  pHwIo->SCON |= USART_HW_IO_SCON_TX_WAIT;
+  UsartHwIo_cbTimerStart(pHwIo->pHwTimer);
 }
 
 //-----------------------------停止发送------------------------------
@@ -229,8 +243,8 @@ void UsartHwIo_SendStart(struct _UsartHwIo *pHwIo)
 void UsartHwIo_SendStop(struct _UsartHwIo *pHwIo)
 {
   UsartHwIo_cbTimerStop(pHwIo->pHwTimer);//先停止定时器
-  pHwIo->SCON &= ~(USART_HW_IO_SCON_TCIE | 
-                   USART_HW_IO_SCON_TX_SPACE);//停止发送,关发送中断
+  pHwIo->SCON &= ~(USART_HW_IO_SCON_TCIE |
+                   USART_HW_IO_SCON_TX_WAIT);//停止发送,关发送中断
   pHwIo->ISR &= ~USART_HW_IO_ISR_TI;//清发送中断标志
   UsartHwIo_cbSetTx(pHwIo->Id);//恢复为默认电平
 }
