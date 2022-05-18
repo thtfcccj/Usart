@@ -46,7 +46,7 @@ void UsartHw_HC32(struct _UsartDevCfg *pCfg,//串口配置结构体
   UsartHw_cbUpdateTimer(pUsartHw, SCNT); //F005时TM = 56635 - SCNT;
   
   //停止位个数控制
-	if(pHw->SCON  & USART_DEV_CFG_2_STOP)//两个停止位时
+	if(pCfg->Cfg  & USART_DEV_CFG_2_STOP)//两个停止位时
     pHw->SCON = (3 << 6) | (0 << 3); //工作模式3(b6),TB8用作停止位0(b3)
   else
     pHw->SCON = (1 << 6) | (0 << 3); //工作模式1

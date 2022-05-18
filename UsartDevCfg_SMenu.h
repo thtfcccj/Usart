@@ -24,16 +24,25 @@ extern const struct _SMenuFun SMenu_UsartDevCfgCfg;
 extern const struct _SMenuFun SMenu_UsartDevCfgBuad;
 #endif
 
-
 /***************************************************************************
                           回调函数
 ****************************************************************************/
 
-//-----------------------由结构得到正在调整的------------------------------
+//------------------由User结构得到正在调整的UsartDevCfg结构--------------------
 #if USART_DEV_CFG_COUNT >  1  //多个时
-  const struct _UsartDevCfg *SMenu_UsartDevCfg_cbGet(struct _SMenuUser *pUser);
+  const struct _UsartDevCfg *SMenu_UsartDevCfg_cbGet(const struct _SMenuUser *pUser);
 #else
   #define SMenu_UsartDevCfg_cbGet(user) &UsartDevCfg[0]
 #endif  
+
+//------------------由User结构得到正在调整的UsartDevCfg ID--------------------
+#if USART_DEV_CFG_COUNT >  1  //多个时
+  unsigned char SMenu_UsartDevCfg_cbGetId(const struct _SMenuUser *pUser);
+#else
+  #define SMenu_UsartDevCfg_cbGetId(user) (0)
+#endif  
+
+
+
 
 #endif //_USART_DEV_CFG_H

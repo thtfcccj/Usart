@@ -64,7 +64,7 @@ extern struct _UsartDevCfg UsartDevCfg[USART_DEV_CFG_COUNT];
 #endif
 
 /******************************************************************************
-                             行为函数
+                             支持保存时相关函数
 ******************************************************************************/
 #ifdef  SUPPORT_USART_DEV_CFG_SAVE   //支持保存时
 
@@ -77,6 +77,13 @@ void UsartDevCfg_Save(unsigned char Id);
 
 //------------------------------默认结构----------------------------------
 extern const struct _UsartDevCfg UsartDevCfg_cbDefault[USART_DEV_CFG_COUNT];
+
+//----------------------------通报以实现参数更新到底层----------------------------
+#ifdef USART_DEV_CFG_DIS_NOTIFY
+  #define UsartDevCfg_cbSaveNotify(ch) do{}while(0)  //不支持时可实现为空
+#else
+  void UsartDevCfg_cbSaveNotify(unsigned char Id);
+#endif
 
 #endif//SUPPORT_USART_DEV_CFG_SAVE
 /*****************************************************************************

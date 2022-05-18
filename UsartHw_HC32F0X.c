@@ -36,14 +36,14 @@ void UsartHw_HC32(struct _UsartDevCfg *pCfg,//串口配置结构体
   //设置所需波特率
   pHw->SCNT = _GetSCNT(UsartDevCfg_GetBuad(pCfg), Clk);
   //停止位个数控制  
-	if(pHw->SCON  & USART_DEV_CFG_2_STOP)//两个停止位时
+	if(pCfg->Cfg  & USART_DEV_CFG_2_STOP)//两个停止位时
     pHw->SCON_f.STOPBIT = 2;
   else pHw->SCON_f.STOPBIT = 0;//1个停止位
   
   //校验控制
-	if(pHw->SCON  & USART_DEV_CFG_PAR_EN){//校验打开时
+	if(pCfg->Cfg & USART_DEV_CFG_PAR_EN){//校验打开时
     pHw->SCON_f.SM =  3; //工作模式3
-    if(pHw->SCON  & USART_DEV_CFG_ODD)
+    if(pCfg->Cfg  & USART_DEV_CFG_ODD)
       pHw->SCON_f.B8CONT = 2; //硬件奇校验
     else pHw->SCON_f.B8CONT = 1;//硬件偶校验
   }

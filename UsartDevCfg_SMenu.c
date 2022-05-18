@@ -5,9 +5,7 @@
 ****************************************************************************/
 
 #include "UsartDevCfg_SMenu.h"
-#include "DA8Adj.h"
 #include "LedSign.h"
-#include "DA8Adj.h"
 #include "SMenuKey.h"
 
 /***************************************************************************
@@ -26,7 +24,7 @@ static void _GetUsartDevCfgCfg(struct _SMenuUser *pUser, unsigned char Type)
 static void _SetUsartDevCfgCfg(struct _SMenuUser *pUser, unsigned char Type)
 {
   UsartDevCfg_SetCfg(SMenu_UsartDevCfg_cbGet(pUser), pUser->Adj);
-  DA8Adj_SavePos();
+  UsartDevCfg_Save(SMenu_UsartDevCfg_cbGetId(pUser));
 }
 
 //主结结构
