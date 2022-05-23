@@ -40,9 +40,9 @@ static const unsigned char _Cfg2MaxTxLen[] = {
 #define _GetMaxTxLen(hw) _Cfg2MaxTxLen[((hw)->UartCfg & 0x0f) >> 1]
 
 
-//-----------------------得到校验位函数-----------------------------
-//返回数据中1的个数
-static unsigned char _GetPar(unsigned char SBUF)
+//-----------------------得到奇偶校验位函数-----------------------------
+//返回数据中1的个数,此函数可用作无奇偶校验的USART中手动处理校验位
+unsigned char UsartHwIo_GetPar(unsigned char SBUF)
 {
   unsigned char BitHiCount = 0;
   for(unsigned char Mask = 0x01; Mask > 0; Mask <<= 1){
@@ -70,7 +70,7 @@ static void _RcvPro(struct _UsartHwIo *pHwIo)
   //校验位
   if(pHwIo->UartCfg & USART_DEV_CFG_PAR_EN){
     //寄偶校验
-    unsigned char Par = ((_GetPar(SBUF) & 0x01) ^ (Data & 0x01));
+    unsigned char Par = ((UsartHwIo_GetPar(SBUF) & 0x01) ^ (Data & 0x01));
     if(pHwIo->UartCfg & USART_DEV_CFG_ODD){//奇校验
       if(!Par) pHwIo->ISR = USART_HW_IO_ISR_FE | USART_HW_IO_ISR_EPAR;
     }
@@ -101,7 +101,7 @@ static unsigned short  _GetSendBitData(const struct _UsartHwIo *pHwIo)
   else Mask = (1 << 9);
   //校验位
   if(pHwIo->UartCfg & USART_DEV_CFG_PAR_EN){
-    unsigned char Par = _GetPar(pHwIo->SBUF) & 0x01;
+    unsigned char Par = UsartHwIo_GetPar(pHwIo->SBUF) & 0x01;
     if(pHwIo->UartCfg & USART_DEV_CFG_ODD){//奇校验
       if(!Par) Data |= Mask;
     }

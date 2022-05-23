@@ -26,6 +26,13 @@
 //  #define USART_SCON_TXEIE     0   //无定义
 //#endif
 
+//-------------------------发送数据时写缓冲区---------------------------------------
+#ifdef SUPPORT_ASM32_USART_PAR //支持ASM32串口的奇偶校验时需实现
+  extern void UsartDev_WrBuf(USART_TypeDef *pUsartHw, unsigned char Data);
+#else //直接写Buf
+  #define UsartDev_WrBuf(hw,data) do{(hw)->SBUF = data; }while(0)
+#endif
+
 
 //-------------------------初始化函数---------------------------------------
 void UsartDev_Init(struct _UsartDev *pDev,
@@ -108,7 +115,7 @@ signed char UsartDev_SendStart(struct _UsartDev *pDev,      //所带设备
   //先清中断
   //pUsartHw->ISR &= ~(USART_ISR_TI | USART_ISR_TI);
   //发送完成一个数产生中断
-  pUsartHw->SBUF = *pBuf;//装载数据准备发送
+  UsartDev_WrBuf(pUsartHw, *pBuf);//装载数据准备发送
   pUsartHw->SCON |= USART_SCON_TCIE;//发送完成中断使能
   
   return 0;
@@ -176,7 +183,7 @@ void UsartDev_RcvIRQ(struct _UsartDev *pDev)
             return;
           }
         }
-        pUsartHw->SBUF = pDev->pSendBuf[pDev->SenLen];//继续发送数
+        UsartDev_WrBuf(pUsartHw, pDev->pSendBuf[pDev->SenLen]);//继续发送数
       }
       //最后一个数移入，但没发出,切换为完成中断
       else{

@@ -74,6 +74,10 @@ void UsartHwIo_RxIRQ(struct _UsartHwIo *pHwIo);
 //放入系统快速任务中查询
 void UsartHwIo_FastTask(struct _UsartHwIo *pHwIo);
 
+//-----------------------得到奇偶校验位函数-----------------------------
+//返回数据中1的个数,此函数可用作无奇偶校验的USART中手动处理校验位
+unsigned char UsartHwIo_GetPar(unsigned char SBUF);    
+                    
 /*********************************************************************
                       UART硬件配置与收发相关函数
 *********************************************************************/
