@@ -10,6 +10,10 @@
 #include "UsartDevCfg.h"
 #include "CMSIS.h"
 
+#ifdef  SUPPORT_BUAD_CAL //支持波特率校准时
+  #include "BusBuadCal.h"
+#endif
+
 #define USART_TypeDef  UART_TypeDef
 
 /******************************************************************************
@@ -25,7 +29,7 @@ static unsigned short _GetSCNT(unsigned long Bandrate,
   //资料公式: Bandrate = ((UARTx_SCON.BAUD=0 + 1)*FpClk) / (32 * (UARTx_BAUDCR.BRG + 1))
   //精简后为： UARTx_BAUDCR.BRG = ((FpClk / Bandrate) >> 5) - 1;
   Clk /= Bandrate;
-  if(Clk & 0x01) Clk ++; //四舍五入
+  if(Clk & 0x10) Clk +=0x10; //四舍五入
   return (Clk >> 5) - 1;
 }
 
@@ -35,6 +39,10 @@ void UsartHw_ASM32(const struct _UsartDevCfg *pCfg,//串口配置结构体
                    void * pUsartHw,           //硬件设备指针
                    unsigned long Clk)        //当前串口使用的时钟
 {
+  #ifdef  SUPPORT_BUAD_CAL //支持波特率校准时
+    Clk = BusBuadCal_Cal(Clk);
+  #endif
+  
   //假定其它位在开机后一直保持默认值  
   USART_TypeDef *pHw = pUsartHw; 
   //设置所需波特率： b16为UARTx_BAUDCR. SELF_BRG=1
