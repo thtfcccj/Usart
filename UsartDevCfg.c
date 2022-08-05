@@ -19,6 +19,12 @@
     57600,//  6
     115200,// 7
   };
+
+//unsigned long UsartDevCfg_GetBuad(const struct _UsartDevCfg *pCfg)
+//{
+//  return UsartDevCfg_Buad[(pCfg->Cfg & USART_DEV_BUAD_MASK) >> USART_DEV_BUAD_SHIFT];
+//}
+
 #endif
   
 /******************************************************************************
