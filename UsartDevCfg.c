@@ -11,13 +11,15 @@
 #ifdef SUPPORT_USART_DEV_CFG_TINY    //精简模式时，Cfg高位为波特率枚举型
   const unsigned long UsartDevCfg_Buad[] = {
     9600,//   0  //默认
-    4800,//   1
-    2400,//   2
-    1200,//   3
-    19200,//  4
-    38400,//  5
-    57600,//  6
-    115200,// 7
+    #ifndef SUPPORT_USART_DEV_TINY_DIS_LOW //没有禁止低波特率时     
+      4800,//   1
+      2400,//   2
+      1200,//   3
+    #endif
+    19200,//  4or1
+    38400,//  5or2
+    57600,//  6or3
+    115200,// 7or4
   };
 
 //unsigned long UsartDevCfg_GetBuad(const struct _UsartDevCfg *pCfg)

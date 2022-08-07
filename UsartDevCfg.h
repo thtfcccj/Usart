@@ -14,7 +14,11 @@
 ******************************************************************************/
 
 //精简模式时，struct _UsartDevCfg占1Byte, 波特率为枚举型
-//#define SUPPORT_USART_DEV_CFG_TINY    
+//#define SUPPORT_USART_DEV_CFG_TINY 
+
+//精简模式时，禁止低波特率配置，9600以下不能使用
+//#define SUPPORT_USART_DEV_TINY_DIS_LOW 
+
 
 //定义托管的数据，如通讯地址，默认不支持
 //#define USART_DEV_CFG_USER  //示例:   unsigned char Adr; unsigned char Para;
@@ -53,14 +57,25 @@ extern struct _UsartDevCfg UsartDevCfg[USART_DEV_CFG_COUNT];
 #ifdef SUPPORT_USART_DEV_CFG_TINY    //精简模式时，Cfg高位为波特率枚举型
   #define USART_DEV_BUAD_SHIFT  4
   #define USART_DEV_BUAD_MASK   (0x07 << USART_DEV_BUAD_SHIFT) //具体配置为:
-  #define USART_DEV_BUAD_9600    0  //默认
-  #define USART_DEV_BUAD_4800    1
-  #define USART_DEV_BUAD_2400    2
-  #define USART_DEV_BUAD_1200    3
-  #define USART_DEV_BUAD_19200   4
-  #define USART_DEV_BUAD_38400   5
-  #define USART_DEV_BUAD_57600   6
-  #define USART_DEV_BUAD_115200  7
+
+  #ifdef SUPPORT_USART_DEV_TINY_DIS_LOW //禁止低波特率时,默认为倍增关系
+    #define USART_DEV_BUAD_9600    0  //默认
+    #define USART_DEV_BUAD_19200   1
+    #define USART_DEV_BUAD_38400   2
+    #define USART_DEV_BUAD_57600   3
+    #define USART_DEV_BUAD_115200  4
+    #define USART_DEV_BUAD_END     4 //结束位置
+  #else //通用波特率时
+    #define USART_DEV_BUAD_9600    0  //默认
+    #define USART_DEV_BUAD_4800    1
+    #define USART_DEV_BUAD_2400    2
+    #define USART_DEV_BUAD_1200    3
+    #define USART_DEV_BUAD_19200   4
+    #define USART_DEV_BUAD_38400   5
+    #define USART_DEV_BUAD_57600   6
+    #define USART_DEV_BUAD_115200  7
+    #define USART_DEV_BUAD_END     7 //结束位置
+  #endif
 #endif
 
 /******************************************************************************
