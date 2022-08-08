@@ -23,7 +23,9 @@ void Usart_Init(void)
   for(unsigned char UsartId = 0; UsartId < USART_COUNT; UsartId++){
     UsartDev_Init(&Usart.Dev[UsartId], //底层硬件通讯初始化
                   Usart_cbHw[UsartId]); 
-    Usart_cbCfgInt[UsartId]();  //最后配置中断
+    #ifndef USART_DIS_CFG_INT //没有禁止本模块实现时
+      Usart_cbCfgInt[UsartId]();  //最后配置中断
+    #endif
   }
 }
 

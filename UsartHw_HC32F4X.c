@@ -42,31 +42,28 @@ void UsartHw_HC32(struct _UsartDevCfg *pCfg,//串口配置结构体
 {  
   USART_TypeDef *pHw = pUsartHw;
   //先强制关闭发送与接收(在TE=0&RE=0)，设置才有效
-  unsigned char En = pHw->CR1 & ((1 << 2) | (1 << 3)); //保存现场
-  pHw->CR1 &= ~((1 << 2) | (1 << 3));
+  //保存收发使能与当前状态(0XE0)现场,高16bit置0即可
+  unsigned long Cr1 = pHw->CR1 & ((1 << 2) | (1 << 3) | 0xE0);
+  pHw->CR1 = 0; //关闭
   unsigned short SCNT = _GetSCNT(UsartDevCfg_GetBuad(pCfg), Clk);
   pHw->PR = SCNT >> 14;
   pHw->BRR = ((SCNT & 0x1ff) - 1) << 8;
-
-    
+  pHw->CR3 = 0;  //不使用其它功能
+  //停止位个数控制,CF2,其它默认为0
+	if(pCfg->Cfg & USART_DEV_CFG_2_STOP)//两个停止位时
+    pHw->CR2 = (1 << 13);
+  else  pHw->CR2 = 0;    
+  
   //此MCU不支持7个数据位(仅支持8~9位)
-  unsigned long Cr1 = pHw->CR1 & 0xE0; //保存现场，防止收发中清标志
-  Cr1 |= (1 << 15); //B15:OVER,其它默认为0
+  Cr1 |= (1 << 15); //B15:OVER0,其它默认为0
   //校验控制
 	if(pCfg->Cfg & USART_DEV_CFG_PAR_EN){//校验打开时
     Cr1 |= (1 << 10); //使能校验位
     if(pCfg->Cfg & USART_DEV_CFG_ODD)
       Cr1 |= (1 << 9); //使能校奇校验
   }
-  pHw->CR1 = Cr1; 
-    
-  //停止位个数控制,CF2,其它默认为0
-	if(pCfg->Cfg & USART_DEV_CFG_2_STOP)//两个停止位时
-    pHw->CR2 = (1 << 13);
-  else  pHw->CR2 = 0;
-                    
-  pHw->CR3 = 0;
-  pHw->CR1 |= En; //恢复现场，设置完成
+
+  pHw->CR1 = Cr1; //恢复现场，设置完成
 }
 
 
