@@ -52,9 +52,11 @@ static const unsigned char _MasterAdmin[] = //主机模式管理员
 {2,    3,4};
 static const unsigned char _SlaveAdmin[] = //从机模式管理员
 {1,    5};
+static const unsigned char _Para16Admin[] = //Para低4bit为1个参数时
+{3,    3, 4, 7};
 
-//工作模式对应是否为主机
-extern unsigned short UsartDevCfgU0_cbIsMasterMask;
+//由工作模式查找状态：1主机+双参数， 2主机+单参数, 0或其它从机
+extern unsigned char UsartDevCfgU0_cbGetModeType(unsigned char Mode);
 
 //----------------------------------回调函数------------------------------- 
 //描述
@@ -66,6 +68,7 @@ static const struct _MNumDesc _Desc[] = {
   {MNUM_TYPE_DEC, 10,255},//4(主机模式)接收等待时间
   {MNUM_TYPE_DEC, 1, 255},//5(从机模式)从机地址
   {MNUM_TYPE_DEC, 1, 255},//6(从机模式)帧间隔时间
+  {MNUM_TYPE_DEC, 1, 16}, //7Para低4bit为1个参数时  
 };
 
 static void _Notify(unsigned char Type,//通报类型
@@ -78,11 +81,15 @@ static void _Notify(unsigned char Type,//通报类型
   
   //准备查找表
   const unsigned char *pLUT;
-  if(UsartDevCfgU0_cbIsMasterMask & (1 << (pCfg->U.M.Cfg >> 4))){
+  unsigned char ModeType = UsartDevCfgU0_cbGetModeType(pCfg->U.M.Cfg >> 4);
+  if(ModeType == 1){ //1主机+双参数
     if(Power_IsAdminMoreUp()) pLUT = _MasterSuper;
     else pLUT = _MasterAdmin;
   }
-  else{
+  if(ModeType == 2){ //主机+单参数
+    pLUT = _Para16Admin;
+  }  
+  else{//从机
     if(Power_IsAdminMoreUp()) pLUT = _SlaveSuper;
     else pLUT = _SlaveAdmin;
   }
@@ -101,6 +108,7 @@ static void _Notify(unsigned char Type,//通报类型
         case 4: Data = pCfg->U.M.WaitT;  break;//(主机模式)接收等待时间
         case 5: Data = pCfg->U.S.Adr;  break;//(从机模式)从机地址
         case 6: Data = pCfg->U.S.SpaceT;  break;//(从机模式)数据间隔
+        case 7: Data = pCfg->U.M.Cfg & 0x0F;  break;//Para低4bit为1个参数时     
       }
       pUser->Value[Pos] = Data;
     }
@@ -124,7 +132,11 @@ static void _Notify(unsigned char Type,//通报类型
         case 3: pCfg->U.M.SpaceT = Data;  break;//(主机模式)帧间隔时间
         case 4: pCfg->U.M.WaitT = Data;  break;//(主机模式)接收等待时间
         case 5: pCfg->U.S.Adr = Data;  break;//(从机模式)从机地址
-        case 6: pCfg->U.S.SpaceT = Data;  break;//(从机模式)数据间隔          
+        case 6: pCfg->U.S.SpaceT = Data;  break;//(从机模式)数据间隔  
+        case 7: //Para低4bit为1个参数时 
+          pCfg->U.M.Cfg &= ~0x0F;  
+          pCfg->U.M.Cfg |= Data;           
+          break;
       }
     }
     UsartDevCfg_Save(UsartDevCfgTMenu_cbGetId());
@@ -151,12 +163,12 @@ static void _Notify(unsigned char Type,//通报类型
 //对应的字符
 const LanCode_t* const lsAry_U0[] = {
   ls_WorkMode, ls_Protocol, ls_ProtocolPara, 
-  ls_SpaceT, ls_WaitT, ls_SlaveAdr, ls_WaitRouter};
+  ls_SpaceT, ls_WaitT, ls_SlaveAdr, ls_WaitRouter, ls_UsartPara16};
 
 //----------------------U0模式的菜单结构-------------------------
 const TMenu_t UsartDevCfgU0_TMenu = {//菜单结构
   TMTYPE_MNUMADJ | TM_MNUMADJ_WRITE, //菜单类型为多值调整模式模式与用户区标志
-  0x80 | 7,                          //由菜单类型决定的相关数据大小
+  0x80 | 8,                          //由菜单类型决定的相关数据大小
   ls_WorkParaSet,                    //菜单头,为NULL时从回调里读取
   USART_DEV_CFG_TMENU_PARENT,        //自已的父菜单
   lsAry_U0,                         //存放自已的子菜单阵列连接头

@@ -61,7 +61,7 @@ extern const RtsFun_t Usart_cbClrRTS[USART_COUNT];
 extern const RtsFun_t Usart_cbSetRTS[USART_COUNT];
 
 /******************************************************************************
-		                           回调函数
+		                       底层回调函数
 ******************************************************************************/
 
 //---------------------------挂接的底层硬件指针--------------------------------
@@ -71,6 +71,24 @@ extern void* const Usart_cbHw[USART_COUNT];
 #ifndef USART_DIS_CFG_INT //没有禁止本模块实现时
 extern const RtsFun_t Usart_cbCfgInt[USART_COUNT];
 #endif
+
+/******************************************************************************
+		                           应用层回调函数
+此部分函数由应用层实现，标准模块调用以实现与应用解耦
+******************************************************************************/
+#include "UsartDevCfg.h"
+
+//----------------由总线ID(应用层的本局定义)获得配置好的Usart结构----------------
+//未找到时需返回默认
+struct _UsartDev *Usart_pcbGetDev(unsigned char BusId);
+
+//------------由总线ID(应用层的本局定义)获得配置好的Usart配置结构----------------
+//未找到时需返回默认
+struct _UsartDevCfg *Usart_pcbGetCfg(unsigned char BusId);
+
+//---------------------由总线ID(应用层的本局定义)控制RTS-----------------
+void Usart_cbCtrlRTS(unsigned char BusId, unsigned char RTS);//0低电平1高电平
+
 
 #endif //#define	__USART_H
 
