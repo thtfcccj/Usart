@@ -50,8 +50,11 @@ static const unsigned char _SlaveSuper[] = //从机模式超级用户
 
 static const unsigned char _MasterAdmin[] = //主机模式管理员
 {2,    3,4};
-static const unsigned char _SlaveAdmin[] = //从机模式管理员
-{1,    5};
+static const unsigned char _SlaveAdmin[] = //从机模式管理员(可选择通讯协议)
+{2,    5,1};
+
+static const unsigned char _Para16Super[] = //Para低4bit为1个参数时超级用户
+{4,    0, 3, 4, 7};
 static const unsigned char _Para16Admin[] = //Para低4bit为1个参数时
 {3,    3, 4, 7};
 
@@ -61,9 +64,9 @@ extern unsigned char UsartDevCfgU0_cbGetModeType(unsigned char Mode);
 //----------------------------------回调函数------------------------------- 
 //描述
 static const struct _MNumDesc _Desc[] = {
-  {MNUM_TYPE_DEC, 0, 15},//0工作模式下的通讯协议  
-  {MNUM_TYPE_DEC, 0, 3},//1工作模式下的通讯协议
-  {MNUM_TYPE_DEC, 0, 3},//2工作模式与协议下的配置
+  {MNUM_TYPE_DEC, 0, 15}, //0工作模式
+  {MNUM_TYPE_DEC, 0, 3},  //1工作模式下的通讯协议
+  {MNUM_TYPE_DEC, 0, 3},  //2工作模式与协议下的配置
   {MNUM_TYPE_DEC, 1, 255},//3(主机模式)帧间隔时间
   {MNUM_TYPE_DEC, 10,255},//4(主机模式)接收等待时间
   {MNUM_TYPE_DEC, 1, 255},//5(从机模式)从机地址
@@ -87,7 +90,8 @@ static void _Notify(unsigned char Type,//通报类型
     else pLUT = _MasterAdmin;
   }
   if(ModeType == 2){ //主机+单参数
-    pLUT = _Para16Admin;
+    if(Power_IsAdminMoreUp()) pLUT = _Para16Super;
+    else pLUT = _Para16Admin;
   }  
   else{//从机
     if(Power_IsAdminMoreUp()) pLUT = _SlaveSuper;
@@ -102,7 +106,7 @@ static void _Notify(unsigned char Type,//通报类型
       switch(pLUT[Pos]){
         case 0: Data  = pCfg->U.M.Cfg >> 4;  break; //工作模式
         case 1: Data = (pCfg->U.M.Cfg >> 2) & 0x03; break;//工作模式下的通讯协议
-        case 2: Data = pCfg->U.M.Cfg & 0x03;  break; //工作模式与协议下的配置
+        case 2: Data = pCfg->U.M.Cfg & 0x03;  break; //工作模式与协议下的配置(主从相同)
         
         case 3: Data = pCfg->U.M.SpaceT;  break;//(主机模式)帧间隔时间
         case 4: Data = pCfg->U.M.WaitT;  break;//(主机模式)接收等待时间
