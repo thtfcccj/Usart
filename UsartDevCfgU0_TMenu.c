@@ -89,7 +89,7 @@ static void _Notify(unsigned char Type,//通报类型
     if(Power_IsAdminMoreUp()) pLUT = _MasterSuper;
     else pLUT = _MasterAdmin;
   }
-  if(ModeType == 2){ //主机+单参数
+  else if(ModeType == 2){ //主机+单参数
     if(Power_IsAdminMoreUp()) pLUT = _Para16Super;
     else pLUT = _Para16Admin;
   }  
