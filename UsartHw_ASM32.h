@@ -6,6 +6,10 @@
 #ifndef __USART_HW_ASM32_H
 #define __USART_HW_ASM32_H
 
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
+
 /******************************************************************************
                         相关实现
 ******************************************************************************/
