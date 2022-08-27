@@ -62,14 +62,17 @@ struct _UsartDev{
 
 //-------------------------初始化函数---------------------------------------
 void UsartDev_Init(struct _UsartDev *pDev,
-                   void * pUsartHw  //挂接的硬件
-                   /*,void *pVoid*/);      //回调函数可能需要的指针
+                   void * pUsartHw);  //挂接的硬件
           
 //-------------------------推存的重配置函数-------------------------------
 //送入配置参数,同时返回实际上的波特率
 //此函数将复位整个Usart的当前操作
 //void UsartDev_ReCfg(struct _UsartDev *pDev,
 //                   struct _UsartDevCfg *pCfg);
+
+//-------------------------读写回调函数可能需要的指针----------------------
+#define UsartDev_SetCbP(dev, Void) do{(dev)->pVoid = Void;}while(1)
+#define UsartDev_GetCbP(dev) ((dev)->pVoid)
 
 //---------------------Usart开始接收数据函数--------------------------------
 //启动USART接收数据,返回是否启动成功
