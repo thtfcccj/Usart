@@ -71,7 +71,7 @@ void UsartDev_Init(struct _UsartDev *pDev,
 //                   struct _UsartDevCfg *pCfg);
 
 //-------------------------读写回调函数可能需要的指针----------------------
-#define UsartDev_SetCbP(dev, Void) do{(dev)->pVoid = Void;}while(1)
+#define UsartDev_SetCbP(dev, Void) do{(dev)->pVoid = Void;}while(0)
 #define UsartDev_GetCbP(dev) ((dev)->pVoid)
 
 //---------------------Usart开始接收数据函数--------------------------------
