@@ -55,7 +55,11 @@ void UsartHw_HC32(struct _UsartDevCfg *pCfg,//串口配置结构体
   else  pHw->CR2 = 0;    
   
   //此MCU不支持7个数据位(仅支持8~9位)
-  Cr1 |= (1 << 15); //B15:OVER0,其它默认为0
+  #ifdef SUPPORT_USART_HW_FLITER //支持数字滤波时
+    Cr1 |= (1 << 15) | (1 << 30); //B15:OVER0,B30:使能滤波功能,其它默认为0
+  #else //不支持时
+    Cr1 |= (1 << 15); //B15:OVER0,其它默认为0
+  #endif
   //校验控制
 	if(pCfg->Cfg & USART_DEV_CFG_PAR_EN){//校验打开时
     Cr1 |= (1 << 10); //使能校验位
