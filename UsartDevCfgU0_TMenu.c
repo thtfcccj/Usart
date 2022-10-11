@@ -50,8 +50,8 @@ static const unsigned char _SlaveSuper[] = //从机模式超级用户
 
 static const unsigned char _MasterAdmin[] = //主机模式管理员
 {2,    3,4};
-static const unsigned char _SlaveAdmin[] = //从机模式管理员(可选择通讯协议)
-{2,    5,1};
+static const unsigned char _SlaveAdmin[] = //从机模式管理员
+{3,    5,1,2};
 
 static const unsigned char _Para16Super[] = //Para低4bit为1个参数时超级用户
 {4,    0, 3, 4, 7};
